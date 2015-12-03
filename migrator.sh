@@ -325,8 +325,11 @@ query_source_images() {
           # cut off 'library/' from beginning of image
           i="${i:8}"
         fi
-        # add image to list
-        FULL_IMAGE_LIST="${FULL_IMAGE_LIST} ${i}:${j}"
+
+        if echo ${i}:${j} | grep -q ${V1_IMAGE_FILTER}
+        then
+          FULL_IMAGE_LIST="${FULL_IMAGE_LIST} ${i}:${j}"
+        fi
       done
     done
   fi
@@ -401,8 +404,8 @@ check_registry_swap_or_retag() {
     # retagging not needed; re-using same DNS name for v2 registry
     echo -e "${OK} Skipping re-tagging; same URL used for v1 and v2\n"
     # notify user to swtich out their registry now
-    echo -en "${NOTICE} "
-    read -rsp $'Make the necessary changes to switch your v1 and v2 registries and then press any key to continue\n' -n1 key
+    #echo -en "${NOTICE} "
+    #read -rsp $'Make the necessary changes to switch your v1 and v2 registries and then press any key to continue\n' -n1 key
   else
     # re-tag images; different DNS name used for v2 registry
     echo -e "\n${INFO} Retagging all images from '${V1_REGISTRY}' to '${V2_REGISTRY}'"
@@ -427,8 +430,9 @@ verify_v2_ready() {
     else
       # api version either not returned or not showing proper version; will continue in loop
       echo -e "\n${ERROR} v2 registry (${V2_REGISTRY}) is not available"
-      echo -en "${NOTICE} "
-      read -rsp $'Verify v2 registry is functioning as expected; press any key to continue to retry [ctrl+c to abort]\n' -n1 key
+      #echo -en "${NOTICE} "
+      #read -rsp $'Verify v2 registry is functioning as expected; press any key to continue to retry [ctrl+c to abort]\n' -n1 key
+      sleep 60
     fi
   done
   # v2 registry verified as available
@@ -493,12 +497,12 @@ main() {
   pull_images_from_source
   check_registry_swap_or_retag
   verify_v2_ready
-  # check to see if V2_NO_LOGIN is true
+  check to see if V2_NO_LOGIN is true
   if [ "${V2_NO_LOGIN}" != "true" ]; then
     docker_login ${V2_REGISTRY} ${V2_USERNAME} ${V2_PASSWORD} ${V2_EMAIL}
   fi
   push_images_to_v2
-  cleanup_local_engine
+  #cleanup_local_engine
   migration_complete
 }
 
